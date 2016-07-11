@@ -1,5 +1,4 @@
 FROM debian:7.8
-MAINTAINER Mike Babineau michael.babineau@gmail.com
 
 ENV \
     ZK_RELEASE="http://www.apache.org/dist/zookeeper/zookeeper-3.4.6/zookeeper-3.4.6.tar.gz" \
@@ -11,7 +10,7 @@ ENV \
 # Use one step so we can remove intermediate dependencies and minimize size
 RUN \
     # Install dependencies
-    apt-get update \
+    apt-get update --fix-missing \
     && apt-get install -y --allow-unauthenticated --no-install-recommends $BUILD_DEPS \
 
     # Default DNS cache TTL is -1. DNS records, like, change, man.
@@ -27,11 +26,7 @@ RUN \
     && mkdir -p /opt/exhibitor \
     && curl -Lo /opt/exhibitor/pom.xml $EXHIBITOR_POM \
     && mvn -f /opt/exhibitor/pom.xml package \
-    && ln -s /opt/exhibitor/target/exhibitor*jar /opt/exhibitor/exhibitor.jar \
-
-    # Remove build-time dependencies
-    && apt-get purge -y --auto-remove $BUILD_DEPS \
-    && rm -rf /var/lib/apt/lists/*
+    && ln -s /opt/exhibitor/target/exhibitor*jar /opt/exhibitor/exhibitor.jar
 
 # Add the wrapper script to setup configs and exec exhibitor
 ADD include/wrapper.sh /opt/exhibitor/wrapper.sh
